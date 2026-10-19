@@ -11,6 +11,21 @@ independent research, scouting, parallel work, or review.
 - Do the work directly when it is small enough to hold in one context —
   delegation has latency (observed 60–100 s per scout) and model cost.
 
+## Pre-authorised triggers (standing delegation — no per-task ask needed)
+
+- After any change implemented by a `worker`/`delegate` child, or any non-trivial implementation: run one `reviewer` (read-only, ad-hoc second read — not formal independent QA) before summarizing; skip for trivial direct edits. One reviewer pass per task; re-run only after substantive revisions.
+- Before planning in a large unfamiliar tree: run one narrow `scout` first.
+- For parallelisable recon or a genuinely independent second read: run 1-2 children max.
+- Otherwise work directly — small tasks stay direct.
+
+## Child control (parent enforces)
+
+- One narrow task per child: explicit artifact, line cap, stop conditions in the task.
+- Read-only first. Writes only to assigned artifact or worktree. One writer per worktree.
+- Parent owns lifecycle: check status on wake, answer supervisor requests, `stop` overruns, park orphan Studio jobs. No unowned running children.
+- No Studio in children. Child ignores injected Studio turns. Never hand-edit `.git/matthew-way-studio` from a child.
+- Close when deliverable is verified by parent read-back. No follow-on sleuthing.
+
 ## Boundaries (hard)
 
 - Studio owns mission orchestration, checkpoints, recovery, human gates.
