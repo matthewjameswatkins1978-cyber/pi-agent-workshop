@@ -8,18 +8,21 @@ function Check($Name, [scriptblock]$Body) {
 }
 
 $global:Failed = $false
+if ([string]::IsNullOrWhiteSpace($env:TEMP)) { Write-Output 'FAIL: TEMP not set'; exit 1 }
+$runStart = Get-Date
 $Speedy = 'D:\Projects\speedy-keeper'
 $MattsPI = 'D:\Projects\mattsPI'
-$Layer = 'D:\Projects\PiToRuleThemAll'
 
 Check 'pi version' { pi --version | Out-Null }
 Check 'speedy repo present' { if (!(Test-Path "$Speedy\package.json")) { throw 'missing' } }
 Check 'speedy tree clean' {
   $s = git -C $Speedy status --short
+  if ($LASTEXITCODE -ne 0) { throw 'git status failed' }
   if ($s) { throw "dirty: $s" }
 }
 Check 'mattsPI tree clean' {
   $s = git -C $MattsPI status --short
+  if ($LASTEXITCODE -ne 0) { throw 'git status failed' }
   if ($s) { throw "dirty: $s" }
 }
 Check 'keeper help (no DB writes)' { node "$Speedy\dist\src\cli.js" help | Out-Null }
@@ -29,17 +32,20 @@ Check 'disposable save/search/export roundtrip' {
     $save = node "$Speedy\dist\src\cli.js" --db $tmp save --kind decision --title 'baseline probe' --body 'verify-baseline.ps1' | ConvertFrom-Json
     if (!$save.ok) { throw 'save not ok' }
     $hits = node "$Speedy\dist\src\cli.js" --db $tmp search --query 'baseline probe' --limit 5 | ConvertFrom-Json
-    if (!$hits.ok -or $hits.data.Count -lt 1) { throw 'search empty' }
-  } finally { Remove-Item $tmp -Force -ErrorAction SilentlyContinue }
+    if (!$hits.ok -or @($hits.data).Count -lt 1) { throw 'search empty' }
+    $exp = node "$Speedy\dist\src\cli.js" --db $tmp export | ConvertFrom-Json
+    if (@($exp).Count -lt 1) { throw 'export empty' }
+  } finally { Remove-Item ($tmp + '*') -Force -ErrorAction SilentlyContinue }
 }
-Check 'no project memory.sqlite touched' {
-  # Workshop holds no DBs; speedy project DB (if any) must be older than this run.
+Check 'project memory.sqlite untouched' {
+  # Workshop holds no DBs; speedy project DB (if any) must predate this run.
   $db = git -C $Speedy rev-parse --git-common-dir 2>$null
+  if ($LASTEXITCODE -ne 0) { throw 'git rev-parse failed' }
   if ($db) {
-    $p = Join-Path (Join-Path $Speedy $db) 'speedy-keeper\memory.sqlite'
+    $common = if ([IO.Path]::IsPathRooted($db)) { $db } else { Join-Path $Speedy $db }
+    $p = Join-Path $common 'speedy-keeper\memory.sqlite'
     if (Test-Path $p) {
-      $age = (Get-Date) - (Get-Item $p).LastWriteTime
-      if ($age.TotalMinutes -lt 0) { throw 'clock skew' }
+      if ((Get-Item $p).LastWriteTime -gt $runStart) { throw ('project DB modified during run: ' + $p) }
       Write-Output ('project DB exists, left untouched: ' + $p)
     }
   }

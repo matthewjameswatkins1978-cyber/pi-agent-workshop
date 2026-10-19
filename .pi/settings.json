@@ -1,0 +1,1 @@
+{"subagents":{"agentOverrides":{"reviewer":{"model":"xiaomi-token-plan-ams/mimo-v2.6-flash"},"scout":{"model":"xiaomi-token-plan-ams/mimo-v2.6-flash"}},"defaultModel":"xiaomi-token-plan-ams/mimo-v2.6-flash","projectRootResolution":"git-root"}}
