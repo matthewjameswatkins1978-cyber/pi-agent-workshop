@@ -19,7 +19,7 @@ Each project owns its own source and behaviour. This workspace records what happ
 | --- | --- |
 | [`BASELINE.md`](BASELINE.md) | Dated observed toolchain and integration state |
 | [`PROJECT_MAP.md`](PROJECT_MAP.md) | Original local checkout map |
-| [`notes/`](notes/) | Usability and interoperability findings |
+| [`notes/`](notes/) | Usability and interoperability findings, including the [workforce integration assessment](notes/workforce-integration-assessment.md) |
 | [`experiments/`](experiments/) | Bounded trials and acceptance criteria |
 | [`scripts/verify-baseline.ps1`](scripts/verify-baseline.ps1) | Re-runnable, read-only checks |
 
